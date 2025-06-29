@@ -1,28 +1,34 @@
 import os
 import time
+from shutil import which
 
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-# Load environment variables
 load_dotenv()
 
 email = os.getenv("NAUKRI_EMAIL")
 password = os.getenv("NAUKRI_PASSWORD")
 resume_path = os.getenv("NAUKRI_RESUME_URL")
 
-# Headless Chrome setup
+# Set up headless Chrome (correct way)
 chrome_options = Options()
-chrome_options.add_argument("--headless")
+chrome_options.add_argument("--headless=new")  # modern headless
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
+chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--window-size=1920,1080")
 
-driver = webdriver.Chrome(options=chrome_options)
+# Get ChromeDriver path from system
+chrome_path = which("chromedriver")
+service = Service(executable_path=chrome_path)
+driver = webdriver.Chrome(service=service, options=chrome_options)
+
 wait = WebDriverWait(driver, 20)
 
 try:
@@ -53,6 +59,7 @@ try:
     wait.until(
         EC.element_to_be_clickable((By.XPATH, '//button[contains(text(), "Login")]'))
     ).click()
+
     print("✅ Logged in successfully")
 
     time.sleep(5)
@@ -75,7 +82,6 @@ try:
         print("🟢 Clicked sidebar resume update.")
 
     time.sleep(3)
-
     file_input = wait.until(
         EC.presence_of_element_located((By.XPATH, '//input[@type="file"]'))
     )
@@ -86,7 +92,6 @@ try:
     time.sleep(5)
 
 except Exception as e:
-    print("❌ Error:", e)
-
+    print("❌ Error:", str(e))
 finally:
     driver.quit()
