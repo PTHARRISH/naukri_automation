@@ -12,7 +12,7 @@ load_dotenv()
 # ===== CONFIG =====
 import os
 
-resume_path = os.getenv("NAUKRI_RESUME")
+resume_path = os.getenv("NAUKRI_RESUME_URL")
 
 
 email = os.getenv("NAUKRI_EMAIL")
