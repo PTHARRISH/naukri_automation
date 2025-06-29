@@ -1,6 +1,7 @@
 import os
 import time
 
+import requests
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -13,14 +14,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 load_dotenv()
 
 # ===== CONFIG =====
-
-
-resume_path = os.getenv("NAUKRI_RESUME_URL")
-
-
+resume_url = os.getenv("NAUKRI_RESUME_URL")
 email = os.getenv("NAUKRI_EMAIL")
 password = os.getenv("NAUKRI_PASSWORD")
-
 
 # ===== BROWSER SETUP =====
 options = Options()
@@ -29,19 +25,21 @@ options.add_argument("--no-sandbox")  # Required in GitHub Actions
 options.add_argument("--disable-dev-shm-usage")  # Avoid memory issues in CI
 options.add_argument("--disable-gpu")  # Safe on headless Linux environments
 
-# Optional: Keep if you still want to test locally with UI (remove --headless)
-# options.add_argument("--start-maximized")
-
 driver = webdriver.Chrome(
     service=Service(ChromeDriverManager().install()), options=options
 )
-# options = Options()
-# options.add_argument("--start-maximized")
-# driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 20)
 
 # ===== START AUTOMATION =====
+resume_file_path = "/tmp/resume.pdf"
+
 try:
+    # Download resume from URL to temp file
+    response = requests.get(resume_url)
+    with open(resume_file_path, "wb") as f:
+        f.write(response.content)
+    print("📄 Resume downloaded to:", resume_file_path)
+
     driver.get("https://www.naukri.com/")
     wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Login"))).click()
 
@@ -99,7 +97,7 @@ try:
     print("📄 File input displayed:", file_input.is_displayed())
 
     # ===== Upload the file =====
-    file_input.send_keys(resume_path)
+    file_input.send_keys(resume_file_path)
     print("✅ Resume uploaded (file input triggered).")
 
     time.sleep(5)
@@ -108,5 +106,7 @@ except Exception as e:
     print("❌ Error:", str(e))
 
 finally:
-    # Optional: driver.quit()
-    pass
+    driver.quit()
+    if os.path.exists(resume_file_path):
+        os.remove(resume_file_path)
+        print("🧹 Temporary file deleted.")
