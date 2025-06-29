@@ -2,41 +2,38 @@ name: Update Naukri Resume
 
 on:
   schedule:
-    - cron: "0 2,8,14 * * *" # Every day at 2AM, 8AM, 2PM UTC
+    - cron: "0 2,8,14 * * *" # Run daily at 2AM, 8AM, 2PM UTC
   workflow_dispatch:
 
 jobs:
-  run-script:
+  update-resume:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: 📁 Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: 🐍 Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: 📦 Install Python dependencies
         run: |
           pip install selenium python-dotenv
 
-      - name: Install Chrome
+      - name: 🌐 Install Google Chrome v114
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt install -y ./google-chrome-stable_current_amd64.deb
+          wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.110-1_amd64.deb
+          sudo apt install -y ./google-chrome-stable_114.0.5735.110-1_amd64.deb
 
-      - name: Install ChromeDriver
+      - name: 🧩 Install ChromeDriver v114.0.5735.90
         run: |
-          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-          wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${CHROME_VERSION}/chromedriver_linux64.zip" || true
+          wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip
           unzip -o /tmp/chromedriver.zip -d /usr/local/bin/
           chmod +x /usr/local/bin/chromedriver
 
-      - name: Run automation script
+      - name: ▶️ Run resume update script
         env:
           NAUKRI_EMAIL: ${{ secrets.NAUKRI_EMAIL }}
           NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}

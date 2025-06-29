@@ -1,14 +1,13 @@
 import os
 import time
-from shutil import which
-
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from shutil import which
 
 load_dotenv()
 
@@ -16,49 +15,33 @@ email = os.getenv("NAUKRI_EMAIL")
 password = os.getenv("NAUKRI_PASSWORD")
 resume_path = os.getenv("NAUKRI_RESUME_URL")
 
-# Set up headless Chrome (correct way)
-chrome_options = Options()
-chrome_options.add_argument("--headless=new")  # modern headless
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--window-size=1920,1080")
+options = Options()
+options.add_argument("--headless=new")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-gpu")
+options.add_argument("--window-size=1920,1080")
 
-# Get ChromeDriver path from system
-chrome_path = which("chromedriver")
-service = Service(executable_path=chrome_path)
-driver = webdriver.Chrome(service=service, options=chrome_options)
-
+# Setup driver
+service = Service(executable_path=which("chromedriver"))
+driver = webdriver.Chrome(service=service, options=options)
 wait = WebDriverWait(driver, 20)
 
 try:
     driver.get("https://www.naukri.com/")
     wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Login"))).click()
 
-    wait.until(
-        EC.visibility_of_element_located(
-            (By.XPATH, '//input[@placeholder="Enter your active Email ID / Username"]')
-        )
-    ).send_keys(email)
+    wait.until(EC.visibility_of_element_located(
+        (By.XPATH, '//input[@placeholder="Enter your active Email ID / Username"]'))).send_keys(email)
 
-    wait.until(
-        EC.element_to_be_clickable(
-            (
-                By.XPATH,
-                '//button[contains(text(), "Continue") or contains(text(), "Login") or contains(text(), "Next")]',
-            )
-        )
-    ).click()
+    wait.until(EC.element_to_be_clickable(
+        (By.XPATH, '//button[contains(text(), "Continue") or contains(text(), "Login") or contains(text(), "Next")]'))).click()
 
-    wait.until(
-        EC.visibility_of_element_located(
-            (By.XPATH, '//input[@placeholder="Enter your password"]')
-        )
-    ).send_keys(password)
+    wait.until(EC.visibility_of_element_located(
+        (By.XPATH, '//input[@placeholder="Enter your password"]'))).send_keys(password)
 
-    wait.until(
-        EC.element_to_be_clickable((By.XPATH, '//button[contains(text(), "Login")]'))
-    ).click()
+    wait.until(EC.element_to_be_clickable(
+        (By.XPATH, '//button[contains(text(), "Login")]'))).click()
 
     print("✅ Logged in successfully")
 
@@ -68,23 +51,16 @@ try:
 
     try:
         update_resume_btn = wait.until(
-            EC.element_to_be_clickable(
-                (By.XPATH, '//button[contains(text(),"Update resume")]')
-            )
-        )
+            EC.element_to_be_clickable((By.XPATH, '//button[contains(text(),"Update resume")]')))
         driver.execute_script("arguments[0].click();", update_resume_btn)
         print("🟡 Clicked main resume update button.")
     except:
-        quicklink_update = wait.until(
-            EC.element_to_be_clickable((By.LINK_TEXT, "Update"))
-        )
+        quicklink_update = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Update")))
         driver.execute_script("arguments[0].click();", quicklink_update)
         print("🟢 Clicked sidebar resume update.")
 
     time.sleep(3)
-    file_input = wait.until(
-        EC.presence_of_element_located((By.XPATH, '//input[@type="file"]'))
-    )
+    file_input = wait.until(EC.presence_of_element_located((By.XPATH, '//input[@type="file"]')))
     driver.execute_script("arguments[0].style.display = 'block';", file_input)
     file_input.send_keys(resume_path)
     print("✅ Resume uploaded")
