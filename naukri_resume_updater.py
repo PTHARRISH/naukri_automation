@@ -1,16 +1,19 @@
+import os
 import time
 
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
 
 load_dotenv()
 
 # ===== CONFIG =====
-import os
+
 
 resume_path = os.getenv("NAUKRI_RESUME_URL")
 
@@ -21,8 +24,20 @@ password = os.getenv("NAUKRI_PASSWORD")
 
 # ===== BROWSER SETUP =====
 options = Options()
-options.add_argument("--start-maximized")
-driver = webdriver.Chrome(options=options)
+options.add_argument("--headless")  # Headless mode for CI
+options.add_argument("--no-sandbox")  # Required in GitHub Actions
+options.add_argument("--disable-dev-shm-usage")  # Avoid memory issues in CI
+options.add_argument("--disable-gpu")  # Safe on headless Linux environments
+
+# Optional: Keep if you still want to test locally with UI (remove --headless)
+# options.add_argument("--start-maximized")
+
+driver = webdriver.Chrome(
+    service=Service(ChromeDriverManager().install()), options=options
+)
+# options = Options()
+# options.add_argument("--start-maximized")
+# driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 20)
 
 # ===== START AUTOMATION =====
