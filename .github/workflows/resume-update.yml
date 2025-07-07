@@ -1,47 +1,47 @@
-name: Update Naukri Resume
+# name: Update Naukri Resume
 
-on:
-  schedule:
-    - cron: "0 2,8,14 * * *"  # Run daily at 2AM, 8AM, 2PM UTC
-  workflow_dispatch:
+# on:
+#   schedule:
+#     - cron: "0 2,8,14 * * *"  # Run daily at 2AM, 8AM, 2PM UTC
+#   workflow_dispatch:
 
-jobs:
-  update-resume:
-    runs-on: ubuntu-latest
+# jobs:
+#   update-resume:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: 📁 Checkout repository
-        uses: actions/checkout@v3
+#     steps:
+#       - name: 📁 Checkout repository
+#         uses: actions/checkout@v3
 
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+#       - name: 🐍 Set up Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: "3.10"
 
-      - name: 📦 Install Python dependencies
-        run: |
-          pip install selenium python-dotenv
+#       - name: 📦 Install Python dependencies
+#         run: |
+#           pip install selenium python-dotenv
 
-      - name: 🌐 Install latest Google Chrome
-        run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list'
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+#       - name: 🌐 Install latest Google Chrome
+#         run: |
+#           wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+#           sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list'
+#           sudo apt-get update
+#           sudo apt-get install -y google-chrome-stable
 
-      - name: 🧩 Install matching ChromeDriver
-        run: |
-          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-          CHROME_MAJOR=$(echo $CHROME_VERSION | cut -d '.' -f 1)
-          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR")
-          wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${DRIVER_VERSION}/chromedriver_linux64.zip"
-          unzip -o /tmp/chromedriver.zip -d /usr/local/bin/
-          chmod +x /usr/local/bin/chromedriver
+#       - name: 🧩 Install matching ChromeDriver
+#         run: |
+#           CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+#           CHROME_MAJOR=$(echo $CHROME_VERSION | cut -d '.' -f 1)
+#           DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR")
+#           wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${DRIVER_VERSION}/chromedriver_linux64.zip"
+#           unzip -o /tmp/chromedriver.zip -d /usr/local/bin/
+#           chmod +x /usr/local/bin/chromedriver
 
-      - name: ▶️ Run resume update script
-        env:
-          NAUKRI_EMAIL: ${{ secrets.NAUKRI_EMAIL }}
-          NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
-          NAUKRI_RESUME_URL: ${{ secrets.NAUKRI_RESUME_URL }}
-        run: |
-          python naukri_resume_updater.py
+#       - name: ▶️ Run resume update script
+#         env:
+#           NAUKRI_EMAIL: ${{ secrets.NAUKRI_EMAIL }}
+#           NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
+#           NAUKRI_RESUME_URL: ${{ secrets.NAUKRI_RESUME_URL }}
+#         run: |
+#           python naukri_resume_updater.py
