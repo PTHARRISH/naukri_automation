@@ -20,8 +20,13 @@ password = os.getenv("NAUKRI_PASSWORD")
 
 
 # ===== BROWSER SETUP =====
+# options = Options()
+# options.add_argument("--start-maximized")
+from selenium.webdriver.chrome.options import Options
 options = Options()
-options.add_argument("--start-maximized")
+options.add_argument('--headless=new')
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 20)
 
