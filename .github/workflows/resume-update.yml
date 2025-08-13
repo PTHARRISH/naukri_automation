@@ -3,7 +3,7 @@ name: Run Selenium Automation
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 4 * * *" # Edit as needed
+    - cron:  '0 4 * * *'    # runs daily at 4am UTC; adjust as needed
 
 jobs:
   test:
@@ -15,11 +15,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: '3.10'
 
       - name: Install dependencies
         run: |
           pip install selenium python-dotenv
+
+      # Not usually needed, but if Chrome version mismatch errors appear, add:
+      # - name: Install Google Chrome
+      #   run: |
+      #     wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+      #     sudo apt install -y ./google-chrome-stable_current_amd64.deb
 
       - name: Run Script
         run: python naukri_resume_updater.py
