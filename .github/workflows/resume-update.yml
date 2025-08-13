@@ -1,45 +1,43 @@
-name: Selenium Resume Upload
+name: Naukri Resume Upload
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 4 * * *" # every day at 4am UTC
+    - cron: '0 4 * * *'  # Daily at 4 AM UTC
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  upload-resume:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: '3.11'
+          cache: 'pip'
 
-      - name: Install requirements
-        run: pip install selenium python-dotenv
-
-      # This is important if runner Chrome and ChromeDriver mismatch
-      - name: Set up Chrome and Chromedriver (match versions)
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
+          pip install selenium==4.15.2 python-dotenv==1.0.0
 
-          # Find out Chrome version (need the full version, like 139.0.7258.127)
-          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+')
-          # Now fetch corresponding chromedriver version using Google's API
-          CHROMEDRIVER_VERSION=$(wget -qO- "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE")
-          wget "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip" -O chromedriver.zip
-          unzip chromedriver.zip
-          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
-          sudo chmod +x /usr/local/bin/chromedriver
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
 
-      - name: Run Resume Upload Script
+      - name: Verify Chrome installation
+        run: |
+          google-chrome --version
+          which chromedriver
+          chromedriver --version
+
+      - name: Run automation script
         env:
           NAUKRI_EMAIL: ${{ secrets.NAUKRI_EMAIL }}
           NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
-          NAUKRI_RESUME_URL: ${{ secrets.NAUKRI_RESUME_URL }}
+          NAUKRI_RESUME_URL: ${{ github.workspace }}/resume.pdf
         run: python naukri_resume_updater.py
