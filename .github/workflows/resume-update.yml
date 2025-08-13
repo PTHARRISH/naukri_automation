@@ -1,9 +1,9 @@
-name: Run Selenium Automation
+name: Selenium Resume Upload
 
 on:
   workflow_dispatch:
   schedule:
-    - cron:  '0 4 * * *'    # runs daily at 4am UTC; adjust as needed
+    - cron: "0 4 * * *" # every day at 4am UTC
 
 jobs:
   test:
@@ -15,22 +15,33 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install requirements
+        run: pip install selenium python-dotenv
+
+      # This is important if runner Chrome and ChromeDriver mismatch
+      - name: Install Google Chrome and Chromedriver
         run: |
-          pip install selenium python-dotenv
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
+          CHROME_VERSION=$(google-chrome --version | grep -Po '[0-9.]+' | head -1 | cut -d. -f1)
+          CHROMEDRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION})
+          wget https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
 
-      # Not usually needed, but if Chrome version mismatch errors appear, add:
-      # - name: Install Google Chrome
-      #   run: |
-      #     wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-      #     sudo apt install -y ./google-chrome-stable_current_amd64.deb
+      - name: List Chrome/Chromedriver version (debug)
+        run: |
+          google-chrome --version
+          chromedriver --version
 
-      - name: Run Script
+      - name: Run Resume Upload Script
+        env:
+          NAUKRI_EMAIL: ${{ secrets.NAUKRI_EMAIL }}
+          NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
+          NAUKRI_RESUME_URL: ${{ secrets.NAUKRI_RESUME_URL }}
         run: python naukri_resume_updater.py
-
-    env:
-      NAUKRI_EMAIL: ${{ secrets.NAUKRI_EMAIL }}
-      NAUKRI_PASSWORD: ${{ secrets.NAUKRI_PASSWORD }}
-      NAUKRI_RESUME_URL: ${{ secrets.NAUKRI_RESUME_URL }}
